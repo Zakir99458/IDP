@@ -1,0 +1,57 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter1d
+
+# List of CSV files, each containing a signal
+csv_files = ["Benchmark_signal_1.csv", "just_water_1.csv", "Only_re_suction_peaks_1.csv"]
+colors = ['blue', 'red', 'green']  # Define colors for each signal
+sigma = 150.0  # Increased sigma for smoothing and noise reduction
+chunk_size = 50000  # Chunk size
+
+# Create a figure and axis for the plot
+fig, ax = plt.subplots()
+ax.set_xlabel('Data')
+ax.set_ylabel('Amplitude')
+ax.set_title('Multiple Signals Comparison')
+
+# Initialize a variable to count signals
+signal_count = len(csv_files)
+
+for i in range(signal_count):
+    # Initialize an empty list to store filtered signal chunks
+    filtered_signal_chunks = []
+
+    # Create a chunk iterator for the current CSV file
+    chunk_iterator = pd.read_csv(csv_files[i], chunksize=chunk_size)
+
+    for chunk in chunk_iterator:
+        # Load data from the CSV file
+        signal_data = chunk['adc2'].astype(float).values
+
+        # Apply Gaussian filtering to the signal for noise reduction
+        filtered_signal = gaussian_filter1d(signal_data, sigma)
+
+        # Append the filtered signal chunk to the list
+        filtered_signal_chunks.append(filtered_signal)
+
+    # Concatenate the filtered signal chunks into a single numpy array
+    filtered_signal = np.concatenate(filtered_signal_chunks)
+
+    # Plot the filtered signal with the specified color and label
+    # label = f'Signal {i+1}'
+
+    if(i==0):
+        label = 'Signal Data'
+    if(i==1):   
+        label = 'Just Water'
+    if(i==2):   
+        label = 'Re Suction'
+
+    ax.plot(np.arange(len(filtered_signal)), filtered_signal, label=label, color=colors[i])
+
+# Show a legend to identify each signal by color and label
+ax.legend(loc='upper right')
+
+# Display the plot
+plt.show()

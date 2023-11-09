@@ -1,0 +1,58 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from scipy.ndimage import gaussian_filter1d
+
+# Define the CSV file path
+csv_file_signal = "Benchmark_signal.csv"
+chunk_size = 50000
+sigma = 150.0
+
+# Initialize a DataFrame iterator
+chunk_iterator_signal = pd.read_csv(csv_file_signal, chunksize=chunk_size)
+
+# Initialize an empty list to store filtered signal chunks
+filtered_signal_chunks = []
+
+# Create a figure and axis for the animation
+fig, ax = plt.subplots()
+ax.set_xlabel('Data')
+ax.set_ylabel('Amplitude')
+ax.set_title('Filtered Signal Animation')
+
+# Initialize a variable to count frames
+frame_count = 0
+
+# Increase the interval for a slower animation (e.g., 100 milliseconds)
+interval = 1000
+
+def update(frame):
+    global frame_count
+    try:
+        # Clear the previous plot
+        ax.clear()
+
+        # Extract the 'adc2' column from the chunk
+        chunk = next(chunk_iterator_signal)
+        signal_data = chunk['adc2'].astype(float).values
+
+        # Apply Gaussian filtering to the signal
+        filtered_signal = gaussian_filter1d(signal_data, sigma)
+
+        # Plot the filtered signal
+        # ax.plot(signal_data, label='Original Signal', color='gray', alpha=0.5)
+        ax.plot(filtered_signal, label='Filtered Signal', color='blue')
+        ax.set_xlim(0, len(signal_data))
+        ax.set_ylim(np.min(filtered_signal), np.max(filtered_signal))
+        
+        frame_count += 1
+    except StopIteration:
+        ani.event_source.stop()
+
+# Create an animation with the specified interval
+ani = FuncAnimation(fig, update, repeat=False, interval=interval)
+
+# To display the animation, you may need to save it as a video or display it using a suitable viewer.
+# ani.save('filtered_signal_animation.mp4', writer='ffmpeg')
+plt.show()
